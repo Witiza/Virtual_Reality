@@ -1,22 +1,65 @@
-import  numpy as np
-import cv2
+import numpy as np # Imports numpy under alias np
 
-cap = cv2.VideoCapture(0)
+arr = np.zeros(10)
 
-fourcc = cv2.VideoWriter_fourcc(*'XVID')
-out = cv2.VideoWriter('output.avi', fourcc, 20.0, (1920, 1080))
-while cap.isOpened():
-    ret, frame = cap.read()
-    if ret is True:
-        out.write(frame)
+print(arr)
 
-        cv2.imshow('Video Frame', frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-    else:
-        break
+# exercice 2
 
-cap.release()
-out.release()
-cv2.destroyAllWindows()
+arr = np.zeros(10)
+arr[4] = 1
 
+print(arr)
+
+#exercise 3
+
+arr = np.arange(10,50)
+
+print(arr)
+
+#exercise 4
+
+arr = np.arange(1,10)
+arr = arr.reshape((3,3))
+
+print(arr)
+
+#exercise 5
+
+arr = np.flip(arr,1)
+
+print(arr)
+
+#exercise 6
+
+arr = np.flip(arr,1)
+
+arr = np.flip(arr,0)
+
+print(arr)
+
+#exercise 7
+
+arr = np.identity(3)
+
+print(arr)
+
+# exercise 8
+
+arr = np.random.random((3, 3))
+
+print(arr)
+
+# exercise 9
+
+arr = np.random.random(10)
+
+print(arr)
+print('mean: ',arr.mean())
+
+# exercise 10
+
+arr = np.ones((10,10))
+arr[1:-1,1:-1] = 0
+
+print(arr)
