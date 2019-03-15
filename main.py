@@ -7,9 +7,14 @@ def convolve(dest, src, i, j, kernel):
     srctmp = src[i:i + krows, j:j + kcols]
     dest[i, j] = (srctmp * kernel[:, :, np.newaxis]).sum(axis=(0, 1))
 
+def convolveGrayscale(dest, src, i, j, kernel):
+    krows, kcols = kernel.shape
+    srctmp = src[i:i + krows, j:j + kcols]
+    dest[i, j] = (srctmp * kernel[:, :]).sum(axis=(0, 1))
 
-def sobelFilter(img):
-    rows, cols,_ = img.shape
+
+def sobelFilter(img,sobelX,sobelY):
+    rows, cols = img.shape
 
     kernel_horizontal = np.array([
                 [-1.,0.,1.],
@@ -22,10 +27,10 @@ def sobelFilter(img):
                 [0.,0.,0.],
                 [1.,2.,1.],
     ])
-    imgpaddingX = np.zeros((rows + 2, cols + 2, 3))
+    imgpaddingX = np.zeros((rows + 2, cols + 2))
     imgpaddingX[1:-1, 1:-1] = img
 
-    imgpaddingY = np.zeros((rows + 2, cols + 2, 3))
+    imgpaddingY = np.zeros((rows + 2, cols + 2))
     imgpaddingY[1:-1, 1:-1] = img
 
     filteredX = np.zeros(img.shape)
@@ -34,18 +39,21 @@ def sobelFilter(img):
     result = np.zeros(img.shape)
     for i in range(0, rows):
         for j in range(0, cols):
-            convolve(filteredX, imgpaddingX, i, j, kernel_horizontal)
+            convolveGrayscale(filteredX, imgpaddingX, i, j, kernel_horizontal)
 
 
     for i in range(0, rows):
         for j in range(0, cols):
-            convolve(filteredY, imgpaddingY, i, j, kernel_vertical)
+            convolveGrayscale(filteredY, imgpaddingY, i, j, kernel_vertical)
 
 
     for i in range(0,rows):
         for j in range(0,cols):
             result[i,j] = np.sqrt(np.power(filteredX[i,j],2) + np.power(filteredY[i,j],2))
 
+    sobelX = filteredX
+    sobelY = filteredY
+    return result
     cv2.imshow("Original", img)
     cv2.imshow("Filtered", np.uint8(result))
     cv2.waitKey(0)
@@ -69,7 +77,7 @@ def boxFilter(img):
     cv2.waitKey(0)
 
 def gaussFilter(img):
-    rows, cols, _ = img.shape
+    rows, cols = img.shape
 
     kernel = np.array([
         [1.,  4.,  7.,  4., 1.],
@@ -81,20 +89,96 @@ def gaussFilter(img):
     kernel = kernel / kernel.sum()
 
 
-    imgpadding = np.zeros((rows + 4, cols + 4, 3))
+    imgpadding = np.zeros((rows + 4, cols + 4))
     imgpadding[2:-2, 2:-2] = img
 
     result = np.zeros(img.shape)
     for i in range(0, rows):
         for j in range(0, cols):
-            convolve(result, imgpadding, i, j, kernel)
+            convolveGrayscale(result, imgpadding, i, j, kernel)
 
+    return result
     cv2.imshow("Original", img)
     cv2.imshow("Filtered", np.uint8(result))
     cv2.waitKey(0)
 
 
+def cannyEdge(img):
+    gauss = gaussFilter(img)
+
+    sobelx = np.zeros(img.shape)
+    sobely = np.zeros(img.shape)
+    sobel = sobelFilter(gauss,sobelx,sobely)
+
+    rows, cols = img.shape
+    directions = img.shape
+
+    sobelpadding = np.zeros((rows + 2, cols + 2))
+    sobelpadding[1:-1, 1:-1] = sobel
+
+    maxSupression = np.zeros(img.shape)
+
+    for i in range(0, rows):
+        for j in range(0, cols):
+            directions[i,j] = getAtan(sobelx[i, j], sobely[i, j])
+
+    for i in range(0, rows):
+        for j in range(0, cols):
+            maxSupression[i,j] = maximumSupression((sobelpadding,directions,i,j))
+
+    cv2.imshow("Original", img)
+    cv2.imshow("Filtered", np.uint8(maxSupression))
+    cv2.waitKey(0)
+
+
+def getAtan(x,y):
+    angle = np.degrees(np.absolute(np.arctan2(x,y)))
+    if angle <= 22.5:
+        angle = 0
+    if angle > 22.5 and angle <= 67.5:
+        angle = 45
+    if angle > 67.5 and angle <= 112.5:
+        angle = 90
+    if angle > 112.5 and angle <= 135:
+        angle = 135
+
+    return angle
+
+def maximumSupression(sobel,direction,i,j):
+    if direction[i,j] is 0:
+        if sobel[i,j+1] > sobel[i,j] or sobel[i,j-1] > sobel[i,j]:
+            return 0
+        else:
+            return sobel[i,j]
+
+    if direction[i,j] is 45:
+        if sobel[i+1,j+1] > sobel[i,j] or sobel[i-1,j-1] > sobel[i,j]:
+            return 0
+        else:
+            return sobel[i,j]
+
+    if direction[i,j] is 90:
+        if sobel[i+1,j] > sobel[i,j] or sobel[i-1,j] > sobel[i,j]:
+            return 0
+        else:
+            return sobel[i,j]
+
+    if direction[i,j] is 135:
+        if sobel[i+1,j-1] > sobel[i,j] or sobel[i-1,j+1] > sobel[i,j]:
+            return 0
+        else:
+            return sobel[i,j]
+
+
+
+
+
+
+
+
+
+
 if __name__=='__main__':
-    img = cv2.imread('sofi.jpg', cv2.IMREAD_ANYCOLOR)
+    img = cv2.imread('droids.jpg', cv2.IMREAD_GRAYSCALE)
   #  filterBox(img)
-    sobelFilter(img)
+    cannyEdge(img)
