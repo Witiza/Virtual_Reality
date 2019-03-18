@@ -13,7 +13,7 @@ def convolveGrayscale(dest, src, i, j, kernel):
     dest[i, j] = (srctmp * kernel[:, :]).sum(axis=(0, 1))
 
 
-def sobelFilter(img,sobelX,sobelY):
+def sobelFilter(img):
     rows, cols = img.shape
 
     kernel_horizontal = np.array([
@@ -51,9 +51,7 @@ def sobelFilter(img,sobelX,sobelY):
         for j in range(0,cols):
             result[i,j] = np.sqrt(np.power(filteredX[i,j],2) + np.power(filteredY[i,j],2))
 
-    sobelX = filteredX
-    sobelY = filteredY
-    return result
+    return result,filteredX,filteredY
     cv2.imshow("Original", img)
     cv2.imshow("Filtered", np.uint8(result))
     cv2.waitKey(0)
@@ -106,12 +104,10 @@ def gaussFilter(img):
 def cannyEdge(img):
     gauss = gaussFilter(img)
 
-    sobelx = np.zeros(img.shape)
-    sobely = np.zeros(img.shape)
-    sobel = sobelFilter(gauss,sobelx,sobely)
+    sobel,sobelx,sobely = sobelFilter(gauss)
 
     rows, cols = img.shape
-    directions = img.shape
+    directions = np.zeros(img.shape)
 
     sobelpadding = np.zeros((rows + 2, cols + 2))
     sobelpadding[1:-1, 1:-1] = sobel
@@ -122,9 +118,15 @@ def cannyEdge(img):
         for j in range(0, cols):
             directions[i,j] = getAtan(sobelx[i, j], sobely[i, j])
 
+
     for i in range(0, rows):
         for j in range(0, cols):
-            maxSupression[i,j] = maximumSupression((sobelpadding,directions,i,j))
+            maxSupression[i,j] = maximumSupression(sobelpadding,directions,i,j)
+
+    print(maxSupression)
+
+
+
 
     cv2.imshow("Original", img)
     cv2.imshow("Filtered", np.uint8(maxSupression))
@@ -134,38 +136,43 @@ def cannyEdge(img):
 def getAtan(x,y):
     angle = np.degrees(np.absolute(np.arctan2(x,y)))
     if angle <= 22.5:
-        angle = 0
+        angle = 0.0
     if angle > 22.5 and angle <= 67.5:
-        angle = 45
+        angle = 45.0
     if angle > 67.5 and angle <= 112.5:
-        angle = 90
-    if angle > 112.5 and angle <= 135:
-        angle = 135
+        angle = 90.0
+    if angle > 112.5 and angle <= 157.5:
+        angle = 135.0
+    if angle > 157.5:
+        angle = 0.0
 
     return angle
 
-def maximumSupression(sobel,direction,i,j):
-    if direction[i,j] is 0:
+def maximumSupression(sobel,direction,_i,_j):
+    i = _i+1
+    j = _j+1
+    print(direction[_i,_j])
+    if direction[_i,_j] == 0.0:
         if sobel[i,j+1] > sobel[i,j] or sobel[i,j-1] > sobel[i,j]:
-            return 0
+            return 0.0
         else:
             return sobel[i,j]
 
-    if direction[i,j] is 45:
+    if direction[_i,_j] == 45.0:
         if sobel[i+1,j+1] > sobel[i,j] or sobel[i-1,j-1] > sobel[i,j]:
-            return 0
+            return 0.0
         else:
             return sobel[i,j]
 
-    if direction[i,j] is 90:
+    if direction[_i,_j] == 90.0:
         if sobel[i+1,j] > sobel[i,j] or sobel[i-1,j] > sobel[i,j]:
-            return 0
+            return 0.0
         else:
             return sobel[i,j]
 
-    if direction[i,j] is 135:
+    if direction[_i,_j] == 135.0:
         if sobel[i+1,j-1] > sobel[i,j] or sobel[i-1,j+1] > sobel[i,j]:
-            return 0
+            return 0.0
         else:
             return sobel[i,j]
 
