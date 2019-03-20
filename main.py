@@ -114,6 +114,7 @@ def cannyEdge(img):
 
     maxSupression = np.zeros(img.shape)
 
+
     for i in range(0, rows):
         for j in range(0, cols):
             directions[i,j] = getAtan(sobelx[i, j], sobely[i, j])
@@ -123,13 +124,21 @@ def cannyEdge(img):
         for j in range(0, cols):
             maxSupression[i,j] = maximumSupression(sobelpadding,directions,i,j)
 
-    print(maxSupression)
+    maxSupressionPadded = np.zeros((rows + 2, cols + 2))
+    maxSupressionPadded[1:-1, 1:-1] = maxSupression
+
+    final = np.zeros(img.shape)
+
+    for i in range(0, rows):
+        for j in range(0, cols):
+            final[i,j] = hysteresisThresholding(maxSupressionPadded,i,j)
+
 
 
 
 
     cv2.imshow("Original", img)
-    cv2.imshow("Filtered", np.uint8(maxSupression))
+    cv2.imshow("Filtered", np.uint8(final))
     cv2.waitKey(0)
 
 
@@ -151,7 +160,7 @@ def getAtan(x,y):
 def maximumSupression(sobel,direction,_i,_j):
     i = _i+1
     j = _j+1
-    print(direction[_i,_j])
+
     if direction[_i,_j] == 0.0:
         if sobel[i,j+1] > sobel[i,j] or sobel[i,j-1] > sobel[i,j]:
             return 0.0
@@ -176,6 +185,29 @@ def maximumSupression(sobel,direction,_i,_j):
         else:
             return sobel[i,j]
 
+def hysteresisThresholding(supressed,_i,_j):
+    i = _i+1
+    j = _j+1
+
+    if supressed[i,j] > 25:
+        return  255
+
+    elif supressed[i,j] < 10:
+        return 0
+
+    else:
+       return checkNeighbourPixels(supressed,i,j)
+
+def checkNeighbourPixels(supressed,i,j):
+    if supressed[i+1,j] > 200 or supressed[i+1,j+1] > 200 or supressed[i,j+1] > 200 or supressed[i-1,j] > 200 or supressed[i-1,j-1] > 200 or supressed[i,j-1] > 200:
+        return 255
+    else:
+        return 0
+
+
+
+
+
 
 
 
@@ -186,6 +218,6 @@ def maximumSupression(sobel,direction,_i,_j):
 
 
 if __name__=='__main__':
-    img = cv2.imread('droids.jpg', cv2.IMREAD_GRAYSCALE)
+    img = cv2.imread('sofi.jpg', cv2.IMREAD_GRAYSCALE)
   #  filterBox(img)
     cannyEdge(img)
