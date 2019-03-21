@@ -189,17 +189,18 @@ def hysteresisThresholding(supressed,_i,_j):
     i = _i+1
     j = _j+1
 
-    if supressed[i,j] > 25:
+    max_treshold = 25
+    if supressed[i,j] > max_treshold:
         return  255
 
     elif supressed[i,j] < 10:
         return 0
 
     else:
-       return checkNeighbourPixels(supressed,i,j)
+       return checkNeighbourPixels(supressed,i,j,max_treshold)
 
-def checkNeighbourPixels(supressed,i,j):
-    if supressed[i+1,j] > 200 or supressed[i+1,j+1] > 200 or supressed[i,j+1] > 200 or supressed[i-1,j] > 200 or supressed[i-1,j-1] > 200 or supressed[i,j-1] > 200:
+def checkNeighbourPixels(supressed,i,j,max_treshold):
+    if supressed[i+1,j] > max_treshold or supressed[i+1,j+1] > max_treshold or supressed[i,j+1] > max_treshold or supressed[i-1,j] > max_treshold or supressed[i-1,j-1] > max_treshold or supressed[i,j-1] > max_treshold:
         return 255
     else:
         return 0
@@ -219,5 +220,4 @@ def checkNeighbourPixels(supressed,i,j):
 
 if __name__=='__main__':
     img = cv2.imread('sofi.jpg', cv2.IMREAD_GRAYSCALE)
-  #  filterBox(img)
     cannyEdge(img)
