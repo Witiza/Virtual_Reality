@@ -78,11 +78,11 @@ def gaussFilter(img):
     rows, cols = img.shape
 
     kernel = np.array([
-        [1.,  4.,  7.,  4., 1.],
-        [4., 16., 26., 16., 4.],
-        [7., 26., 41., 26., 7.],
-        [4., 16., 26., 16., 4.],
-        [1.,  4.,  7.,  4., 1.]
+        [2.,  4.,  5.,  4., 2.],
+        [4., 9., 12., 9., 4.],
+        [5., 12., 15., 12., 5.],
+        [4., 9., 12., 9., 4.],
+        [2.,  4.,  5.,  4., 2.]
     ])
     kernel = kernel / kernel.sum()
 
@@ -143,7 +143,10 @@ def cannyEdge(img):
 
 
 def getAtan(x,y):
-    angle = np.degrees(np.absolute(np.arctan2(x,y)))
+    angle = np.degrees(np.arctan2(y,x))
+    if angle < 0:
+        angle += 180
+
     if angle <= 22.5:
         angle = 0.0
     if angle > 22.5 and angle <= 67.5:
@@ -162,7 +165,7 @@ def maximumSupression(sobel,direction,_i,_j):
     j = _j+1
 
     if direction[_i,_j] == 0.0:
-        if sobel[i,j+1] > sobel[i,j] or sobel[i,j-1] > sobel[i,j]:
+        if sobel[i+1,j] > sobel[i,j] or sobel[i-1,j] > sobel[i,j]:
             return 0.0
         else:
             return sobel[i,j]
@@ -174,7 +177,7 @@ def maximumSupression(sobel,direction,_i,_j):
             return sobel[i,j]
 
     if direction[_i,_j] == 90.0:
-        if sobel[i+1,j] > sobel[i,j] or sobel[i-1,j] > sobel[i,j]:
+        if sobel[i,j+1] > sobel[i,j] or sobel[i,j-1] > sobel[i,j]:
             return 0.0
         else:
             return sobel[i,j]
@@ -189,11 +192,11 @@ def hysteresisThresholding(supressed,_i,_j):
     i = _i+1
     j = _j+1
 
-    max_treshold = 25
+    max_treshold = 200
     if supressed[i,j] > max_treshold:
         return  255
 
-    elif supressed[i,j] < 10:
+    elif supressed[i,j] < 100:
         return 0
 
     else:
@@ -219,5 +222,5 @@ def checkNeighbourPixels(supressed,i,j,max_treshold):
 
 
 if __name__=='__main__':
-    img = cv2.imread('sofi.jpg', cv2.IMREAD_GRAYSCALE)
+    img = cv2.imread('sonic.jpg', cv2.IMREAD_GRAYSCALE)
     cannyEdge(img)
