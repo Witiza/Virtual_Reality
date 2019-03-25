@@ -51,10 +51,14 @@ def sobelFilter(img):
         for j in range(0,cols):
             result[i,j] = np.sqrt(np.power(filteredX[i,j],2) + np.power(filteredY[i,j],2))
 
+
+    defxfilter = cv2.Sobel(img,cv2.CV_64F,1,0)
+    defyfilter = cv2.Sobel(img,cv2.CV_64F,0,1)
+
+    defSobeledImg = np.sqrt(defxfilter * defxfilter + defyfilter * defyfilter)
+    cv2.imshow("OwnSobel", np.uint8(result))
+    cv2.imshow("Sobel", np.uint8(defSobeledImg))
     return result,filteredX,filteredY
-    cv2.imshow("Original", img)
-    cv2.imshow("Filtered", np.uint8(result))
-    cv2.waitKey(0)
 
 def boxFilter(img):
     rows,cols,_ = img.shape
@@ -70,7 +74,10 @@ def boxFilter(img):
         for j in range(0, cols):
             convolve(result, imgpadding, i, j, kernel)
 
+
+
     cv2.imshow("Original", img)
+
     cv2.imshow("Filtered", np.uint8(result))
     cv2.waitKey(0)
 
@@ -95,10 +102,13 @@ def gaussFilter(img):
         for j in range(0, cols):
             convolveGrayscale(result, imgpadding, i, j, kernel)
 
+
+
+    cv2.imshow("OwnGauss", np.uint8(result))
+    meh = 5/4
+    calla= cv2.GaussianBlur(img,(5,5),meh)
+    cv2.imshow("Gauss", np.uint8(calla))
     return result
-    cv2.imshow("Original", img)
-    cv2.imshow("Filtered", np.uint8(result))
-    cv2.waitKey(0)
 
 
 def cannyEdge(img):
@@ -107,10 +117,9 @@ def cannyEdge(img):
     sobel,sobelx,sobely = sobelFilter(gauss)
 
     rows, cols = img.shape
-    directions = np.zeros(img.shape)
+    directions = np.uint8(np.zeros(img.shape))
 
-    sobelpadding = np.zeros((rows + 2, cols + 2))
-    sobelpadding[1:-1, 1:-1] = sobel
+
 
     maxSupression = np.zeros(img.shape)
 
@@ -120,23 +129,24 @@ def cannyEdge(img):
             directions[i,j] = getAtan(sobelx[i, j], sobely[i, j])
 
 
-    for i in range(0, rows):
-        for j in range(0, cols):
-            maxSupression[i,j] = maximumSupression(sobelpadding,directions,i,j)
+    for i in range(1, rows-1):
+        for j in range(1, cols-1):
+            maxSupression[i,j] = maximumSupression(sobel,directions,i,j)
 
-    maxSupressionPadded = np.zeros((rows + 2, cols + 2))
-    maxSupressionPadded[1:-1, 1:-1] = maxSupression
 
     final = np.zeros(img.shape)
 
-    for i in range(0, rows):
-        for j in range(0, cols):
-            final[i,j] = hysteresisThresholding(maxSupressionPadded,i,j)
+    for i in range(1, rows-1):
+        for j in range(1, cols-1):
+            final[i,j] = hysteresisThresholding(maxSupression,i,j)
 
 
 
 
+    calla = cv2.Canny(img,50,100)
 
+
+    cv2.imshow("CV2", np.uint8(calla))
     cv2.imshow("Original", img)
     cv2.imshow("Filtered", np.uint8(final))
     cv2.waitKey(0)
@@ -148,55 +158,52 @@ def getAtan(x,y):
         angle += 180
 
     if angle <= 22.5:
-        angle = 0.0
+        angle = 0
     if angle > 22.5 and angle <= 67.5:
-        angle = 45.0
+        angle = 45
     if angle > 67.5 and angle <= 112.5:
-        angle = 90.0
+        angle = 90
     if angle > 112.5 and angle <= 157.5:
-        angle = 135.0
+        angle = 135
     if angle > 157.5:
-        angle = 0.0
+        angle = 0
 
     return angle
 
-def maximumSupression(sobel,direction,_i,_j):
-    i = _i+1
-    j = _j+1
+def maximumSupression(sobel,direction,i,j):
 
-    if direction[_i,_j] == 0.0:
-        if sobel[i+1,j] > sobel[i,j] or sobel[i-1,j] > sobel[i,j]:
-            return 0.0
-        else:
-            return sobel[i,j]
 
-    if direction[_i,_j] == 45.0:
-        if sobel[i+1,j+1] > sobel[i,j] or sobel[i-1,j-1] > sobel[i,j]:
-            return 0.0
-        else:
-            return sobel[i,j]
-
-    if direction[_i,_j] == 90.0:
+    if direction[i,j] == 0:
         if sobel[i,j+1] > sobel[i,j] or sobel[i,j-1] > sobel[i,j]:
             return 0.0
         else:
             return sobel[i,j]
 
-    if direction[_i,_j] == 135.0:
-        if sobel[i+1,j-1] > sobel[i,j] or sobel[i-1,j+1] > sobel[i,j]:
+    if direction[i,j] == 45:
+        if sobel[i+1,j+1] > sobel[i,j] or sobel[i-1,j-1] > sobel[i,j]:
             return 0.0
         else:
             return sobel[i,j]
 
-def hysteresisThresholding(supressed,_i,_j):
-    i = _i+1
-    j = _j+1
+    if direction[i,j] == 90:
+        if sobel[i+1,j] > sobel[i,j] or sobel[i-1,j] > sobel[i,j]:
+            return 0.0
+        else:
+            return sobel[i,j]
 
-    max_treshold = 200
+    if direction[i,j] == 135:
+        if sobel[i-1,j+1] > sobel[i,j] or sobel[i+1,j-1] > sobel[i,j]:
+            return 0.0
+        else:
+            return sobel[i,j]
+
+def hysteresisThresholding(supressed,i,j):
+
+    max_treshold = 40
     if supressed[i,j] > max_treshold:
         return  255
 
-    elif supressed[i,j] < 100:
+    elif supressed[i,j] < 10:
         return 0
 
     else:
@@ -207,13 +214,6 @@ def checkNeighbourPixels(supressed,i,j,max_treshold):
         return 255
     else:
         return 0
-
-
-
-
-
-
-
 
 
 
