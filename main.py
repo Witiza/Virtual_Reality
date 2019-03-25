@@ -12,6 +12,11 @@ def convolveGrayscale(dest, src, i, j, kernel):
     srctmp = src[i:i + krows, j:j + kcols]
     dest[i, j] = (srctmp * kernel[:, :]).sum(axis=(0, 1))
 
+def convolveMedian(dest,src,i,j,k):
+    kernel = src[i:i+3,j:j+3,k]
+    dest[i,j,k] = np.median(kernel)
+
+
 
 def sobelFilter(img):
     rows, cols = img.shape
@@ -110,6 +115,25 @@ def gaussFilter(img):
     cv2.imshow("Gauss", np.uint8(calla))
     return result
 
+def medianFilter(img):
+    rows,cols,deep = img.shape
+
+    imgpadding = np.zeros((rows + 2, cols + 2, 3))
+    imgpadding[1:-1,1:-1] =img
+
+    result = np.zeros(img.shape)
+
+    for i in range(0,rows):
+        for j in range(0,cols):
+            for k in range(0,deep):
+               convolveMedian(result,imgpadding,i,j,k)
+
+    median = cv2.medianBlur(img,3)
+    cv2.imshow("Original",img)
+    cv2.imshow("OwnMedian",np.uint8(result))
+    cv2.imshow("Median",np.uint8(median))
+
+
 
 def cannyEdge(img):
     gauss = gaussFilter(img)
@@ -149,7 +173,7 @@ def cannyEdge(img):
     cv2.imshow("CV2", np.uint8(calla))
     cv2.imshow("Original", img)
     cv2.imshow("Filtered", np.uint8(final))
-    cv2.waitKey(0)
+
 
 
 def getAtan(x,y):
@@ -222,5 +246,6 @@ def checkNeighbourPixels(supressed,i,j,max_treshold):
 
 
 if __name__=='__main__':
-    img = cv2.imread('sonic.jpg', cv2.IMREAD_GRAYSCALE)
-    cannyEdge(img)
+    img = cv2.imread('lena_noise.jpg', cv2.IMREAD_ANYCOLOR)
+    medianFilter(img)
+    cv2.waitKey(0)
