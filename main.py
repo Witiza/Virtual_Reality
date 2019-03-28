@@ -245,6 +245,8 @@ def checkNeighbourPixels(supressed,i,j,max_treshold):
 
 
 
+
+
 if __name__=='__main__':
     img = cv2.imread('lena_noise.jpg', cv2.IMREAD_ANYCOLOR)
     medianFilter(img)
