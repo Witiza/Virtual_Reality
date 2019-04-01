@@ -1,0 +1,29 @@
+<html>
+    <head>
+         <script type="text/javascript">
+            //<!--
+               function validate()
+               {
+                   if(document.myFormName.value == "")
+                   {
+                       alert("State your name")
+                       return false;
+                   }
+                   else
+                   {
+                       document.write(document.myForm.Name.value)
+                       return true
+                   }
+               }
+            //-->            
+        </script>
+    </head>
+    <body>
+        <form name="myForm" onsubmit="return(validate())">
+            <tr>
+                <td align="right">Name</td>
+                <td><input type="text" name="Name" /></td>
+            </tr>
+        </form>
+    </body>
+</html>
