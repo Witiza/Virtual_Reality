@@ -2,6 +2,12 @@
 	"folders": [
 		{
 			"path": "JavascriptTest"
+		},
+		{
+			"path": "WebGLApp"
 		}
-	]
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "WebGLApp"
+	}
 }
