@@ -8,16 +8,16 @@
 
         <script id="shader-vs" type="x-shader/x-vertex">
             attribute vec3 aVertexPosition;
-            attribute vec2 aTexCoords;
+            attribute vec3 aColor;
 
             uniform mat4 uMVMatrix;
             uniform mat4 uPMatrix;
-            uniform sampler2D texture2D;
 
-            out vec3 textureColor;
+            varying vec3 vColor;
 
             void main(void) {
-                textureColor = texture(texture2D,aTexCoords)
+
+                vColor = aColor;
                 gl_Position = vec4(aVertexPosition, 1.0);
             }
             
@@ -26,15 +26,17 @@
         <script id="shader-fs" type="x-shader/x-fragment">
             precision mediump float;
 
-            in vec3 textureColor
+            varying vec3 vColor;
+
             void main(void) {
-                gl_FragColor = vec4(textureColor, 1.0);
+                gl_FragColor = vec4(vColor, 1.0);
             }
         </script>
         
         <script type="text/javascript">
-
+            var myTexture;
             var gl;
+
             function initGL(canvas) {
                 try {
                     gl = canvas.getContext("experimental-webgl");
@@ -102,12 +104,14 @@
 
                 shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
                 shaderProgram.vertexColorAttribute = gl.getAttribLocation(shaderProgram, "aColor");
+                shaderProgram.vertexTexCoordsAttribute = gl.getAttribLocation(shaderProgram, "aTexCoords");
             
                 gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
                 gl.enableVertexAttribArray(shaderProgram.vertexColorAttribute);
 
                 shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
                 shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+                shaderProgram.sampler2DUniform = gl.getUniformLocation(shaderProgram, "texture2D");
             }
 
 
@@ -126,7 +130,6 @@
             
             function loadSceneOnGPU() {
 
-                //---------------------------quad buffer--------------------
                 quadVertexPositionBuffer = gl.createBuffer()
                 gl.bindBuffer(gl.ARRAY_BUFFER, quadVertexPositionBuffer)
                 var vertices = [
@@ -142,21 +145,39 @@
                 quadVertexPositionBuffer.numItems =6
 
                 //--------------------TRIANGLE COLOR------------------
-                quadVertexColorBuffer = gl.createBuffer(),
-                gl.bindBuffer(gl.ARRAY_BUFFER, quadVertexColorBuffer);
-                var colors = [
-                    0,0,0,
-                    1,1,1,
-                    0,1,0,
-                    1,1,1,
-                    0,0,0,
-                    1,0,0
+                quadVertexCoordBuffer = gl.createBuffer(),
+                gl.bindBuffer(gl.ARRAY_BUFFER, quadVertexCoordBuffer);
+                var coords = [
+                    0,0,
+                    1,1,
+                    0,1,
+                    1,1,
+                    0,0,
+                    1,0,
                 ];
-                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-                quadVertexColorBuffer.itemSize = 3;
-                quadVertexColorBuffer.numItems = 6;
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(coords), gl.STATIC_DRAW);
+                quadVertexCoordBuffer.itemSize = 2;
+                quadVertexCoordBuffer.numItems = 6;
+
             }
 
+            function setTextureParams(texture){
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.bindTexture(gl.TEXTURE_2D, null);
+            }
+
+            function loadTextureOnGPU(){
+                myTexture = gl.createTexture();
+                myTexture.image = new Image();
+                myTexture.image.onload = function (){
+                    setTextureParams(myTexture)
+                }
+                myTexture.image.src = "textures/marvel.png";
+            }
 
             function drawScene() {
                 gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
@@ -166,21 +187,28 @@
 
                 mat4.identity(mvMatrix);
  
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, myTexture);
+                gl.uniform1i(shaderProgram.sampler2DUniform,0);
                 //----------------quad draw------------------
                 mat4.translate(mvMatrix, [3.0, 0.0, -10]);
+                gl.bindBuffer(gl.ARRAY_BUFFER, quadVertexCoordBuffer)
+                gl.vertexAttribPointer(shaderProgram.vertexTexCoordsAttribute, quadVertexCoordBuffer.itemSize, gl.FLOAT, false,0,0)
+                
                 gl.bindBuffer(gl.ARRAY_BUFFER, quadVertexPositionBuffer)
                 gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, quadVertexPositionBuffer.itemSize, gl.FLOAT, false,0,0)
 
-                gl.bindBuffer(gl.ARRAY_BUFFER, quadVertexColorBuffer)
-                gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, quadVertexColorBuffer.itemSize,gl.FLOAT, false, 0,0);
+                
                 sendMatricesToShader()
                 gl.drawArrays(gl.TRIANGLES,0,quadVertexPositionBuffer.numItems)
                 mat4.identity(mvMatrix)
 
             }
 
-
-
+            function renderingLoop(){
+                requestAnimationFrame(renderingLoop);
+                drawScene();
+            }
             function webGLStart() {
                 var canvas = document.getElementById("webGL-canvas");
                 canvas.width = window.innerWidth;
@@ -190,10 +218,12 @@
                 initShaders();
                 loadSceneOnGPU();
 
+                loadTextureOnGPU();
+
                 gl.clearColor(0.0, 0.0, 0.0, 1.0);
                 gl.enable(gl.DEPTH_TEST);
 
-                drawScene();
+                renderingLoop();
             }
 
         </script>
