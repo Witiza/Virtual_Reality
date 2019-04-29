@@ -39,7 +39,18 @@
         <script type="text/javascript">
             var myTexture;
             var gl;
+            var currentlyPressedKeys = {};
+            var mousedown = false;
+            var mouse_x = null;
+            var mouse_y = null;
+            var mouseRotationMatrix = mat4.create();
+            mat4.identity(mouseRotationMatrix);
 
+            deg2rad(value)
+            {
+                return (value*Math.PI)/180
+            }
+            
             function initGL(canvas) {
                 try {
                     gl = canvas.getContext("experimental-webgl");
@@ -125,7 +136,42 @@
                 gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
                 gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
             }
+            
+            handleKeyDown(event)
+            {
+                currentlyPressedKeys[event.keyCode] = true;
+            }
 
+            handleKeyUp(event)
+            {
+                currentlyPressedKeys[event.KeyCode] = false;                                          
+            }
+
+            handleMouseDown(event)
+            {
+                mousedown = true;
+            }
+            handleMouseMove(event)
+            {
+                if(!mousedown)
+                {
+                    return;
+                }
+
+                var newX = event.clientX;
+                var newY = event.clientY;
+                var deltaX = newX - mouse_x;
+                var deltaY = newY - mouse_y;
+
+                var newRotationMatrix = mat4.create();
+                mat4.identity(newRotationMatrix);
+                mat4.rotate(newRotationMatrix, deg2rad)
+
+            }                                                                                                                                                                                                                                                           
+            handleInput()
+            {
+
+            }
 
 
             var quadVertexPositionBuffer;
@@ -246,6 +292,7 @@
 
             function renderingLoop(){
                 requestAnimationFrame(renderingLoop);
+                handleInput();
                 drawScene();
             }
             function webGLStart() {
@@ -258,6 +305,13 @@
                 loadSceneOnGPU();
 
                 loadTextureOnGPU();
+
+                document.onkeydown = handleKeyDown;
+                document.onkeyup = handleKeyUp;
+                
+                canvas.onmousedown = handleMouseDown;
+                document.onmouseup = handleMouseUp;
+                document.onmousemove = handleMouseMove;
 
                 gl.clearColor(0.0, 0.0, 0.0, 1.0);
                 gl.enable(gl.DEPTH_TEST);
