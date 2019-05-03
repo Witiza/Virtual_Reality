@@ -43,6 +43,10 @@
             var mousedown = false;
             var mouse_x = null;
             var mouse_y = null;
+            var pan_x = 0.0;
+            var pan_y = 0.0;
+            var zoom = 0.0;
+
             var mouseRotationMatrix = mat4.create();
             mat4.identity(mouseRotationMatrix);
 
@@ -150,6 +154,14 @@
             handleMouseDown(event)
             {
                 mousedown = true;
+                if(event.button == 1)
+                {
+                    var newX = event.clientX;
+                    var newY = event.clientY;
+                    pan_x = newX - mouse_x;
+                    pan_y = newY - mouse_y;
+                }
+
             }
             handleMouseMove(event)
             {
@@ -165,12 +177,17 @@
 
                 var newRotationMatrix = mat4.create();
                 mat4.identity(newRotationMatrix);
-                mat4.rotate(newRotationMatrix, deg2rad)
+                mat4.rotate(newRotationMatrix, deg2rad(deltaX/10),[0,1,0]);
+                mat4.rotate(newRotationMatrix, deg2rad(deltaY/10),[1,0,0]);
+                mat4.multiply(newRotationMatrix,mouseRotationMatrix,mouseRotationMatrix);
+
+                mouse_x = newX;
+                mouse_y = newY;
 
             }                                                                                                                                                                                                                                                           
             handleInput()
             {
-
+                if(currentlyPressedKeys[])
             }
 
 
@@ -259,6 +276,8 @@
                 mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
 
                 mat4.identity(mvMatrix);
+                mat4.translate(mvMatrix,[0.0,0.0,-10]);
+                mat4.multiply(mvMatrix,mouseRotationMatrix);
  
                 gl.activeTexture(gl.TEXTURE0);
                 gl.bindTexture(gl.TEXTURE_2D, myTexture);
