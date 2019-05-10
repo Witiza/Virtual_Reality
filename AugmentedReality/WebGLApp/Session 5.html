@@ -214,64 +214,28 @@
                // if(currentlyPressedKeys[])
             }
 
+            function loadModel(){
+                var request = new XMLHttpRequest();
+                request.open("GET","model.json");
+                request.onreadystatechange = function(){
+                    if(request.readyState == 4){
+                        handleLoadedModel(JSON.parse(request.responseText));
+                    }
+                }
+                request.send();
+            }
 
-            var quadVertexPositionBuffer;
-            var quadVertexCoordBuffer;
-            var triangleVertexPositionBuffer;
-            var triangleVertexCoordBuffer;
-            
-            function loadSceneOnGPU() {
+            var modelVertexPositionBuffer;
+            var modelVertexNormalBuffer;
+            var modelVertexTextureCoordBuffer;
+            var modelVertexIndexBuffer;
 
-                quadVertexPositionBuffer = gl.createBuffer()
-                gl.bindBuffer(gl.ARRAY_BUFFER, quadVertexPositionBuffer)
-                var vertices = [
-                    -1.0, -1.0, 0.0,
-                     1.0, 1.0, 0.0,
-                    -1.0, 1.0, 0.0,
-                     1.0, 1.0, 0.0,
-                     -1.0, -1.0, 0.0,
-                     1.0, -1.0, 0.0
-                ]
-                gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices), gl.STATIC_DRAW)
-                quadVertexPositionBuffer.itemSize = 3
-                quadVertexPositionBuffer.numItems =6
-
-                //--------------------TRIANGLE COLOR------------------
-                quadVertexCoordBuffer = gl.createBuffer(),
-                gl.bindBuffer(gl.ARRAY_BUFFER, quadVertexCoordBuffer);
-                var coords = [
-                    0.5,0,
-                    1,0.5,
-                    0.5,0.5,
-                    1,0.5,
-                    0.5,0,
-                    1,0,
-                ];
-                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(coords), gl.STATIC_DRAW);
-                quadVertexCoordBuffer.itemSize = 2;
-                quadVertexCoordBuffer.numItems = 6;
-
-                triangleVertexPositionBuffer = gl.createBuffer();
-                gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer);
-                var vertices = [
-                     0.0, 1.0, 0.0,
-                    -1.0, -1.0, 0.0,
-                     1.0, -1.0, 0.0
-                ];
-                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-                triangleVertexPositionBuffer.itemSize = 3;
-                triangleVertexPositionBuffer.numItems = 3;
-
-                triangleVertexCoordBuffer = gl.createBuffer(),
-                gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexCoordBuffer);
-                var coords = [
-                    0,0.75,
-                    0.5,1,
-                    0.5,0.5,
-                ];
-                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(coords), gl.STATIC_DRAW);
-                triangleVertexCoordBuffer.itemSize = 2;
-                triangleVertexCoordBuffer.numItems = 3;
+            function handleLoadedModel(modelData) {
+                modelVertexNormalBuffer = gl.createBuffer
+                gl.bindBuffer(gl.ARRAY_BUFFER, modelVertexNormalBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(modelData.vertexNormals),gl.STATIC_DRAW);
+                modelVertexBuffer.itemSize = 3;
+                modelVertexNormalBuffer.numItems = modelData.vertexNormals.length/3;
 
             }
 
