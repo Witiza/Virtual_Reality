@@ -198,13 +198,13 @@
                      mouse_y = newY;
                 }
 
-                // if(mousedown && event.button == 0)
-                // {
-                //     var newX = event.clientX;
-                //     var newY = event.clientY;
-                //     pan_x = (newX - mouse_x)*0.01;
-                //     pan_y = -(newY - mouse_y)*0.01;
-                // }
+                if(mousedown && event.button == 1)
+                {
+                    var newX = event.clientX;
+                    var newY = event.clientY;
+                    pan_x = (newX - mouse_x)*0.01;
+                    pan_y = -(newY - mouse_y)*0.01;
+                }
 
             }                                                                                                                                                                                                                                                           
             function handleInput()
