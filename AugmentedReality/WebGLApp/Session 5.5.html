@@ -24,8 +24,10 @@
         <script id="shader-fs" type="x-shader/x-fragment">
             precision mediump float;
 
+            uniform vec4 color;
+
             void main(void) {
-                gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+                gl_FragColor = color;
             }
         </script>
         
@@ -131,7 +133,7 @@
                 gl.useProgram(shaderProgram);
 
                 shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
-                
+                shaderProgram.modelColor = gl.getUniformLocation(shaderProgram,"color");
             
                 gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
 
@@ -280,10 +282,13 @@
                for(i = 0; i < loadedModels;i++)
                {
                    mat4.translate(mvMatrix,[i*20,0,0]);
-                    console.log(i)
+                   
+                   
+                
                    gl.bindBuffer(gl.ARRAY_BUFFER, modelVertexPositionBuffer[i]);
                    gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute,modelVertexPositionBuffer[i].itemSize,gl.FLOAT,false,0,0);
                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, modelVertexIndexBuffer[i]);
+                   gl.uniform4fv(shaderProgram.modelColor, [0.1+i*0.5,0.5+i*0.1,0,1]);
                    sendMatricesToShader();
                    gl.drawElements(gl.TRIANGLES, modelVertexIndexBuffer[i].numItems, gl.UNSIGNED_SHORT,0);
                }
